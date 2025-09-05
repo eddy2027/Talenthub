@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Quiz result{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:12px;">
+  Quiz result
+  {% if quiz and quiz.title %}· {{ quiz.title }}{% endif %}
+</h1>
+
+<div style="margin-bottom:12px;">
+  <div>Score: <strong>{{ attempt.score|default:"-" }}%</strong></div>
+  <div>Passed:
+    <strong>
+      {% if attempt and attempt.passed %}Yes
+      {% elif attempt and attempt.is_passed %}Yes
+      {% else %}No{% endif %}
+    </strong>
+  </div>
+  <div>Started: {{ attempt.started_at|default:"-" }}</div>
+  <div>Finished: {{ attempt.finished_at|default:"-" }}</div>
+</div>
+
+{% if answers %}
+  <h3 style="margin-top:16px;">Answers</h3>
+  <table class="table" style="width:100%;">
+    <thead>
+      <tr>
+        <th style="text-align:left;padding:6px;">Question</th>
+        <th style="text-align:left;padding:6px;">Your answer</th>
+        <th style="text-align:left;padding:6px;">Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in answers %}
+      <tr>
+        <td style="padding:6px;max-width:600px;">{{ a.question.text|default:"(No text)" }}</td>
+        <td style="padding:6px;">
+          {# intentamos varios posibles nombres de campo #}
+          {{ a.choice.text|default:a.selected_choice.text|default:a.free_text|default:"—" }}
+        </td>
+        <td style="padding:6px;">
+          {% if a.is_correct %}✅ Correct{% else %}❌ Incorrect{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="secondary">No detailed answers were provided for this attempt.</p>
+{% endif %}
+
+<p style="margin-top:16px;">
+  {% if quiz and quiz.course %}
+    <a class="btn" href="{% url 'quiz_list_for_course' quiz.course.id %}">← Back to quizzes</a>
+  {% else %}
+    <a class="btn" href="javascript:history.back()">← Back</a>
+  {% endif %}
+</p>
+{% endblock %}

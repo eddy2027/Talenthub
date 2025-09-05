@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Manage questions · {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:12px;">Manage questions · {{ quiz.title }}</h1>
+
+<p style="margin-bottom:12px;">
+  <a class="btn btn-primary" href="{% url 'quiz_add_question' quiz.id %}">Add question</a>
+  <a class="btn" style="margin-left:8px;" href="{% url 'quiz_list_for_course' quiz.course.id %}?manage=1">Back to quizzes</a>
+</p>
+
+{% if questions %}
+  <table class="table" style="width:100%;">
+    <thead>
+      <tr>
+        <th style="text-align:left;padding:8px;">Question</th>
+        <th style="text-align:left;padding:8px;">Type</th>
+        <th style="text-align:left;padding:8px;">Points</th>
+        <th style="text-align:left;padding:8px;">Choices</th>
+        <th style="text-align:left;padding:8px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for q in questions %}
+      <tr>
+        <td style="padding:8px;max-width:520px;">Q{{ forloop.counter }}. {{ q.text }}</td>
+        <td style="padding:8px;">{{ q.get_question_type_display }}</td>
+        <td style="padding:8px;">{{ q.points }}</td>
+        <td style="padding:8px;">
+          {% if q.question_type == "SHORT_TEXT" %}
+            <span class="secondary">Short text (no choices)</span>
+          {% else %}
+            <ul style="margin:0;padding-left:18px;">
+              {% for c in q.choices.all %}
+                <li>{% if c.is_correct %}✅{% else %}—{% endif %} {{ c.text }}</li>
+              {% empty %}
+                <li class="secondary">No choices.</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </td>
+        <td style="padding:8px;white-space:nowrap;">
+          <a class="btn" href="{% url 'question_edit' q.id %}">Edit</a>
+          <form method="post" action="{% url 'question_delete' q.id %}" style="display:inline;margin-left:6px;">
+            {% csrf_token %}
+            <button class="btn" style="background:#a33030" onclick="return confirm('Delete this question?');">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="secondary">No questions yet.</p>
+{% endif %}
+
+<p style="margin-top:12px;">
+  <a class="btn btn-primary" href="{% url 'quiz_add_question' quiz.id %}">Add question</a>
+  <a class="btn" style="margin-left:8px;" href="{% url 'quiz_list_for_course' quiz.course.id %}?manage=1">Back to quizzes</a>
+</p>
+{% endblock %}

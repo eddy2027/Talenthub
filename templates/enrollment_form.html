@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>New Enrollment</h2>
+
+<form method="post">
+  {% csrf_token %}
+
+  <fieldset>
+    <label>Learner
+      <select name="user_id" required>
+        <option value="">-- select user --</option>
+        {% for u in users %}
+          <option value="{{ u.id }}">{{ u.first_name }} {{ u.last_name }} {% if not u.first_name and not u.last_name %}({{ u.username }}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label>Course
+      <select name="course_id" id="course_id" required>
+        <option value="">-- select course --</option>
+        {% for c in courses %}
+          <option value="{{ c.id }}"
+                  data-external="{{ c.delivered_by_external|yesno:'1,0' }}">
+            {{ c.title }}{% if c.instructor %} — {{ c.instructor }}{% endif %}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label>
+      <input type="checkbox" name="mark_completed" id="mark_completed">
+      Completed now (set progress to 100%)
+    </label>
+
+    <label>Progress (0–100)
+      <input type="number" name="progress" id="progress" min="0" max="100" value="0">
+      <small>If “Completed now” is checked or the course is external, this will be saved as 100%.</small>
+    </label>
+  </fieldset>
+
+  <button type="submit">Save</button>
+  <a href="{% url 'enrollments_list' %}">Cancel</a>
+</form>
+
+<script>
+  (function(){
+    const markCompleted = document.getElementById('mark_completed');
+    const progress = document.getElementById('progress');
+    const course = document.getElementById('course_id');
+
+    function updateProgressHint(){
+      const opt = course.options[course.selectedIndex];
+      const isExternal = opt && opt.getAttribute('data-external') === '1';
+      if (isExternal || markCompleted.checked) {
+        progress.value = 100;
+      }
+    }
+
+    markCompleted.addEventListener('change', updateProgressHint);
+    course.addEventListener('change', updateProgressHint);
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Import Users (Excel)</h2>
+
+  {% if messages %}
+    <ul>
+      {% for m in messages %}
+        <li>{{ m }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <p>Upload an Excel file (.xlsx) with the following columns:</p>
+  <pre>full_name | email | phone | age | sex | department | position (optional)</pre>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="file" accept=".xlsx" required />
+    <button type="submit">Upload</button>
+  </form>
+
+  <p>
+    <a href="/export-users/">Download current users (Excel)</a> — can be used as a template.
+  </p>
+{% endblock %}

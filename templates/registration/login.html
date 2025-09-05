@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-i18n="login_title">Login</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>
+    main { max-width: 420px; margin: 10vh auto; }
+    header { display:flex; justify-content: space-between; align-items:center; }
+    .lang-select { min-width: 180px; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h2 data-i18n="app_title">Eddy LMS</h2>
+      <select id="lang" class="lang-select" aria-label="Language">
+        <option value="en">English (default)</option>
+        <option value="es">Español</option>
+        <option value="nl">Nederlands</option>
+        <option value="fr">Français</option>
+        <option value="pt">Português</option>
+        <option value="it">Italiano</option>
+        <option value="hi">हिन्दी (Hindi)</option>
+      </select>
+    </header>
+
+    <article>
+      <h3 data-i18n="login_heading">Sign in</h3>
+      {% if form.errors %}
+        <p role="alert" data-i18n="login_error">Invalid username or password.</p>
+      {% endif %}
+
+      <form method="post" action="/accounts/login/">
+        {% csrf_token %}
+        <label>
+          <span data-i18n="username">Username</span>
+          <input type="text" name="username" required />
+        </label>
+        <label>
+          <span data-i18n="password">Password</span>
+          <input type="password" name="password" required />
+        </label>
+        <button type="submit" data-i18n="login_btn">Login</button>
+      </form>
+    </article>
+  </main>
+
+  <script src="/static/js/i18n.js"></script>
+</body>
+</html>

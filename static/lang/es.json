@@ -1,0 +1,17 @@
+{
+  "app_title": "Eddy LMS",
+  "menu_title": "Menú",
+  "menu_dashboard": "Panel",
+  "menu_courses": "Cursos",
+  "menu_reports": "Reportes",
+  "menu_users": "Usuarios",
+  "logout": "Cerrar sesión",
+  "welcome_title": "Bienvenido",
+  "welcome_text": "Este es tu panel. Usa el menú de la izquierda para navegar.",
+  "login_title": "Iniciar sesión",
+  "login_heading": "Entrar",
+  "login_error": "Usuario o contraseña inválidos.",
+  "username": "Usuario",
+  "password": "Contraseña",
+  "login_btn": "Entrar"
+}

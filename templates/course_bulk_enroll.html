@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Bulk enroll — {{ course.title }}</h2>
+
+<p style="opacity:.85; margin:8px 0 16px;">
+  This will enroll <strong>all users in a department</strong> into the course.
+  Existing enrollments will be <em>skipped</em> automatically.
+</p>
+
+<form method="post" style="display:grid; gap:12px; max-width:720px; background:#0f1a2d; border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:14px;">
+  {% csrf_token %}
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <label>Department
+      <select name="department_id" required style="width:100%; padding:8px;">
+        <option value="">-- Select --</option>
+        {% for d in departments %}
+          <option value="{{ d.id }}"
+            {% if my_department and d.id == my_department.id %}selected{% endif %}>
+            {{ d.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label>Initial progress (0–100)
+      <input type="number" name="initial_progress" min="0" max="100" value="0" style="width:100%; padding:8px;">
+    </label>
+  </div>
+
+  {% if is_manager and not is_admin %}
+    <div class="msg info" style="border-color:#3498db;">
+      As manager, you can only enroll <strong>your own department</strong>.
+    </div>
+  {% endif %}
+
+  <div style="display:flex; gap:10px; margin-top:6px;">
+    <button class="btn" type="submit">Enroll now</button>
+    <a class="btn" href="{% url 'courses_list' %}">Back to Courses</a>
+  </div>
+</form>
+
+<div style="margin-top:14px; opacity:.8;">
+  <ul>
+    <li><strong>Created</strong> enrollments will be reported as “Created”.</li>
+    <li>Users already enrolled are <strong>Skipped</strong>.</li>
+    <li>If you set initial progress to <strong>100</strong>, enrollments will be marked as <em>completed</em>.</li>
+  </ul>
+</div>
+{% endblock %}

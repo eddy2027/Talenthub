@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Edit question · {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:12px;">Edit question · {{ quiz.title }}</h1>
+
+<p class="secondary" style="margin:4px 0 16px;">
+  Type: <strong>{{ initial.type }}</strong>
+  {% if initial.has_answers %}
+    · <span style="color:#e39;">Locked structure (already answered)</span>
+  {% endif %}
+</p>
+
+<form method="post" style="max-width:720px;">
+  {% csrf_token %}
+
+  <label style="display:block; margin:8px 0 4px;">Question text</label>
+  <textarea name="text" rows="3" style="width:100%;">{{ initial.text }}</textarea>
+
+  <label style="display:block; margin:12px 0 4px;">Points</label>
+  <input type="number" name="points" min="1" value="{{ initial.points }}" style="width:120px;">
+
+  {% if initial.kind == "MULTIPLE" %}
+    {% if not initial.has_answers %}
+      <div style="margin-top:16px;">
+        <label style="display:block; margin:8px 0 4px;">Choices</label>
+        {% with choices=initial.choices %}
+          <div style="display:grid; grid-template-columns: 1fr 220px; gap:8px; align-items:center;">
+            <input type="text" name="choice1" value="{{ choices.0.text|default:'' }}" placeholder="Choice 1">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <input type="radio" name="correct_choice" value="1" {% if choices.0.is_correct %}checked{% endif %}> Correct
+            </label>
+
+            <input type="text" name="choice2" value="{{ choices.1.text|default:'' }}" placeholder="Choice 2">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <input type="radio" name="correct_choice" value="2" {% if choices.1.is_correct %}checked{% endif %}> Correct
+            </label>
+
+            <input type="text" name="choice3" value="{{ choices.2.text|default:'' }}" placeholder="Choice 3">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <input type="radio" name="correct_choice" value="3" {% if choices.2.is_correct %}checked{% endif %}> Correct
+            </label>
+
+            <input type="text" name="choice4" value="{{ choices.3.text|default:'' }}" placeholder="Choice 4">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <input type="radio" name="correct_choice" value="4" {% if choices.3.is_correct %}checked{% endif %}> Correct
+            </label>
+          </div>
+        {% endwith %}
+      </div>
+    {% else %}
+      <p class="secondary" style="margin-top:12px;">
+        This question already has answers, so options and correct answer cannot be changed.
+      </p>
+    {% endif %}
+  {% elif initial.kind == "TRUE_FALSE" %}
+    {% if not initial.has_answers %}
+      {% with choices=initial.choices %}
+        {% for ch in choices %}
+          {% if ch.text == "True" and ch.is_correct %}
+            {% set_true_is_correct = 1 %}
+          {% endif %}
+        {% endfor %}
+      {% endwith %}
+      <div style="margin-top:16px;">
+        <label style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" name="true_is_correct"
+                 {% for ch in initial.choices %}{% if ch.text == "True" and ch.is_correct %}checked{% endif %}{% endfor %}>
+          “True” is the correct answer
+        </label>
+      </div>
+    {% else %}
+      <p class="secondary" style="margin-top:12px;">
+        This question already has answers, so the correct option cannot be changed.
+      </p>
+    {% endif %}
+  {% endif %}
+
+  <div style="margin-top:16px;">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn" href="{% url 'question_list' quiz.id %}" style="margin-left:8px;">Cancel</a>
+  </div>
+</form>
+{% endblock %}

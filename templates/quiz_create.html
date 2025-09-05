@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Create quiz · {{ course.title }}{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:12px;">Create quiz · {{ course.title }}</h1>
+
+{% if messages %}
+  <ul>
+    {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+  </ul>
+{% endif %}
+
+<form method="post" style="max-width:640px;">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div style="color:#e5534b;margin-bottom:8px;">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div style="margin-bottom:10px;">
+    <label>Title</label>
+    {{ form.title }}
+    {{ form.title.errors }}
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;">
+    <div>
+      <label>Pass score (%)</label>
+      {{ form.pass_score }}
+      {{ form.pass_score.errors }}
+    </div>
+    <div>
+      <label>Attempts allowed</label>
+      {{ form.attempts_allowed }}
+      {{ form.attempts_allowed.errors }}
+    </div>
+  </div>
+
+  <div style="margin-bottom:10px;">
+    <label>Time limit (minutes)</label>
+    {{ form.time_limit_minutes }}
+    {{ form.time_limit_minutes.errors }}
+  </div>
+
+  <div style="margin-bottom:16px;">
+    <label style="display:inline-flex;align-items:center;gap:6px;">
+      {{ form.active }} Active
+    </label>
+    {{ form.active.errors }}
+  </div>
+
+  <button type="submit" class="btn btn-primary">Create quiz</button>
+  <a href="{% url 'quiz_list_for_course' course.id %}" class="btn" style="margin-left:8px;">Cancel</a>
+</form>
+{% endblock %}

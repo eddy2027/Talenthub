@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}No attempts left{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:12px;">No attempts left</h1>
+<p>
+  You have used all attempts for <strong>{{ quiz.title }}</strong>.
+  Used: <strong>{{ used }}</strong> / Allowed: <strong>{{ allowed }}</strong>.
+</p>
+
+<p style="margin-top:12px;">
+  <a class="btn btn-primary" href="{% url 'quiz_list_for_course' quiz.course.id %}">Back to quizzes</a>
+  <a class="btn" style="margin-left:8px;" href="{% url 'course_view' quiz.course.id %}">Back to course</a>
+</p>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>{{ material.display_name }}</h1>
+{% if course %}
+  <p class="secondary">Course:
+    <a href="{% url 'course_view' course_id=course.id %}">{{ course.title }}</a>
+  </p>
+{% endif %}
+
+{% if material.kind == "FILE" %}
+  {% if material.file %}
+    <p><a href="{{ material.file.url }}" target="_blank" rel="noopener">Open / Download file</a></p>
+  {% else %}
+    <p class="secondary">No file available.</p>
+  {% endif %}
+  <hr>
+  <p>Status:
+    {% if progress.is_completed %}<strong>✅ Completed</strong>{% else %}<strong>⏳ Pending</strong>{% endif %}
+  </p>
+  <form method="post" action="{% url 'material_progress' material_id=material.id %}" style="display:inline-block; margin-right:8px;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="complete">
+    <button type="submit">Mark as completed</button>
+  </form>
+  <form method="post" action="{% url 'material_progress' material_id=material.id %}" style="display:inline-block;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="uncomplete">
+    <button class="secondary" type="submit">Mark as pending</button>
+  </form>
+
+{% elif material.kind == "YOUTUBE" %}
+  {% if youtube_id %}
+    <!-- Player -->
+    <div id="player" style="max-width: 960px; width:100%; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden;"></div>
+
+    <!-- Barra de progreso y estado -->
+    <div style="margin-top:14px;">
+      <div style="width:100%; max-width:960px; height:12px; background:#eee; border-radius:8px; overflow:hidden;">
+        <div id="progressBar" style="height:100%; width:0%; background:#1f8fff; transition:width .25s;"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:6px; max-width:960px;">
+        <span class="secondary" id="ytStatus">Loading…</span>
+        <span class="secondary" id="ytPercent">0% watched</span>
+      </div>
+    </div>
+
+    <hr>
+    <p>Status:
+      <span id="doneFlag">{% if progress.is_completed %}<strong>✅ Completed</strong>{% else %}<strong>⏳ Pending</strong>{% endif %}</span>
+    </p>
+
+    <noscript><p>Enable JavaScript to track progress automatically.</p></noscript>
+
+    <script>
+      // CSRF helper (Django docs)
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+      const csrftoken = getCookie('csrftoken');
+
+      let player;
+      let tickTimer = null;   // actualiza UI cada 1s
+      let postTimer = null;   // envía progreso cada 5s
+      let lastSent = 0;
+
+      const progressBar = document.getElementById('progressBar');
+      const percentSpan = document.getElementById('ytPercent');
+      const statusSpan = document.getElementById('ytStatus');
+      const doneFlag = document.getElementById('doneFlag');
+
+      // YouTube IFrame API
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+
+      function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+          videoId: "{{ youtube_id }}",
+          playerVars: { rel: 0, modestbranding: 1 },
+          events: { 'onReady': onReady, 'onStateChange': onStateChange }
+        });
+      }
+
+      function onReady() {
+        statusSpan.textContent = "Ready";
+        // UI: actualiza cada 1s
+        tickTimer = setInterval(updateUI, 1000);
+        // POST: envía progreso cada 5s
+        postTimer = setInterval(() => sendProgress(false), 5000);
+      }
+
+      function onStateChange(e) {
+        if (e.data === YT.PlayerState.PLAYING) {
+          statusSpan.textContent = "Playing…";
+        } else if (e.data === YT.PlayerState.PAUSED) {
+          statusSpan.textContent = "Paused";
+          sendProgress(false); // guarda al pausar
+        } else if (e.data === YT.PlayerState.BUFFERING) {
+          statusSpan.textContent = "Buffering…";
+          sendProgress(false); // guarda por si el user cambia de página
+        } else if (e.data === YT.PlayerState.ENDED) {
+          statusSpan.textContent = "Ended";
+          // Fuerza completado SOLO aquí (video terminó)
+          sendComplete();
+          // UI al 100%
+          progressBar.style.width = "100%";
+          percentSpan.textContent = "100% watched";
+          doneFlag.innerHTML = "<strong>✅ Completed</strong>";
+          // paramos timers
+          if (tickTimer) clearInterval(tickTimer);
+          if (postTimer) clearInterval(postTimer);
+        }
+      }
+
+      function updateUI() {
+        if (!player || typeof player.getCurrentTime !== 'function') return;
+        const current = player.getCurrentTime() || 0;
+        const duration = player.getDuration() || 0;
+        const pct = duration ? Math.max(0, Math.min(100, Math.floor((current / duration) * 100))) : 0;
+        progressBar.style.width = pct + "%";
+        percentSpan.textContent = pct + "% watched";
+      }
+
+      async function sendProgress(forceComplete=false) {
+        if (!player || typeof player.getCurrentTime !== 'function') return;
+        const current = player.getCurrentTime() || 0;
+        const duration = player.getDuration() || 0;
+
+        // Evita exceso de POST si no avanza
+        if (!forceComplete && current <= lastSent + 1) return;
+        lastSent = current;
+
+        const form = new FormData();
+        form.append('action', 'progress');
+        form.append('seconds', String(forceComplete ? duration : current));
+        form.append('duration', String(duration));
+
+        try {
+          const res = await fetch("{% url 'material_progress' material_id=material.id %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
+            body: form
+          });
+          // No marcamos completed aquí; solo persistimos segundos.
+        } catch (err) {
+          console.warn('progress post failed', err);
+        }
+      }
+
+      async function sendComplete() {
+        if (!player) return;
+        const duration = player.getDuration() || 0;
+        const form = new FormData();
+        form.append('action', 'complete');
+        form.append('duration', String(duration));
+        try {
+          await fetch("{% url 'material_progress' material_id=material.id %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
+            body: form
+          });
+        } catch (err) {
+          console.warn('complete post failed', err);
+        }
+      }
+
+      // Antes de salir, guardamos lo último (mejor esfuerzo)
+      window.addEventListener('beforeunload', () => {
+        try { sendProgress(false); } catch (_) {}
+      });
+    </script>
+  {% else %}
+    <p class="secondary">Invalid YouTube URL.</p>
+  {% endif %}
+{% endif %}
+
+<p style="margin-top:16px;">
+  {% if course %}
+    <a href="{% url 'course_view' course_id=course.id %}">← Back to course</a>
+  {% else %}
+    <a href="{% url 'catalog' %}">← Back to catalog</a>
+  {% endif %}
+</p>
+
+{% endblock %}

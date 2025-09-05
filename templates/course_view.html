@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>{{ course.title }}</h1>
+{% if course.instructor %}
+  <p class="secondary">Instructor: {{ course.instructor }}</p>
+{% endif %}
+
+<p>
+  Progress: <strong>{{ percent }}%</strong>
+  <span class="secondary">({{ completed_count }}/{{ total_count }} materials completed)</span>
+</p>
+
+<div style="width:100%; max-width:480px; height:10px; background:#eee; border-radius:6px; overflow:hidden; margin-bottom:16px;">
+  <div style="width: {{ percent }}%; height:100%; background:#1f8fff;"></div>
+</div>
+
+<h3>Materials</h3>
+
+{% if materials %}
+  <table role="grid" style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th style="text-align:left; padding:8px;">Name</th>
+        <th style="text-align:left; padding:8px;">Uploaded at</th>
+        <th style="text-align:left; padding:8px;">Status</th>
+        <th style="text-align:left; padding:8px;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in materials %}
+      <tr>
+        <td style="padding:8px;">{{ m.display_name }}</td>
+        <td style="padding:8px;">{{ m.uploaded_at|date:"Y-m-d H:i" }}</td>
+        <td style="padding:8px;">
+          {% if m.is_done %}✅ Completed{% else %}⏳ Pending{% endif %}
+        </td>
+        <td style="padding:8px;">
+          <a href="{% url 'material_watch' material_id=m.id %}">Open</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="secondary">This course has no materials yet.</p>
+{% endif %}
+
+<hr style="margin:24px 0; border:none; border-top:1px solid #2b2f36;">
+
+<h3>Quizzes</h3>
+
+{% if quizzes %}
+  <table class="table" style="width:100%;">
+    <thead>
+      <tr>
+        <th style="text-align:left;padding:8px;">Quiz</th>
+        <th style="text-align:left;padding:8px;">Pass</th>
+        <th style="text-align:left;padding:8px;">Attempts</th>
+        <th style="text-align:left;padding:8px;">Last result</th>
+        <th style="text-align:left;padding:8px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for q in quizzes %}
+      <tr>
+        <td style="padding:8px;">{{ q.title }}</td>
+        <td style="padding:8px;">{{ q.pass_score }}%</td>
+        <td style="padding:8px;">
+          {{ q.used_attempts }}/{{ q.allowed_attempts }}
+          {% if q.attempts_left == 0 %}
+            <span class="secondary">· no attempts left</span>
+          {% endif %}
+        </td>
+        <td style="padding:8px;">
+          {% if q.last_score is not None %}
+            {{ q.last_score }}% · {% if q.last_passed %}✅ Passed{% else %}❌ Failed{% endif %}
+          {% else %}
+            <span class="secondary">No attempts yet</span>
+          {% endif %}
+        </td>
+        <td style="padding:8px; white-space:nowrap;">
+          {% if q.attempts_left > 0 %}
+            <a class="btn btn-primary" href="{% url 'quiz_take' q.id %}">Take quiz</a>
+          {% else %}
+            <button class="btn" disabled>Take quiz</button>
+          {% endif %}
+          {% if request.user.is_staff %}
+            <a class="btn" style="margin-left:8px;" href="{% url 'quiz_add_question' q.id %}">Add question</a>
+          {% endif %}
+        </td>
+      </tr>
+
+      {% if q.recent_attempts %}
+      <tr>
+        <td colspan="5" style="padding:8px 8px 12px;">
+          <div class="secondary" style="margin-bottom:6px;">Recent attempts</div>
+          <table class="table" style="width:100%;">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:6px;">When</th>
+                <th style="text-align:left;padding:6px;">Score</th>
+                <th style="text-align:left;padding:6px;">Passed</th>
+                <th style="text-align:left;padding:6px;">Open</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in q.recent_attempts %}
+              <tr>
+                <td style="padding:6px;">{{ a.finished_at|default:a.started_at }}</td>
+                <td style="padding:6px;">{{ a.score|default:"0" }}%</td>
+                <td style="padding:6px;">{% if a.passed %}Yes{% else %}No{% endif %}</td>
+                <td style="padding:6px;">
+                  <a class="btn" href="{% url 'quiz_result' q.id a.id %}">View</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </td>
+      </tr>
+      {% endif %}
+
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="secondary">This course has no quizzes yet.</p>
+{% endif %}
+
+<p style="margin-top:16px;">
+  <a href="{% url 'catalog' %}">← Back to catalog</a>
+</p>
+
+{% endblock %}

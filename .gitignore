@@ -1,0 +1,19 @@
+# Python / Django
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# DBs locales
+db.sqlite3
+db_*.sqlite3
+
+# Archivos generados
+staticfiles/
+media/
+
+# Entornos / secretos
+.env
+.env.*

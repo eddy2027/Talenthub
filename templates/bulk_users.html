@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Bulk Deactivate/Delete</h2>
+
+  {% if messages %}
+    <ul>
+      {% for m in messages %}
+        <li>{{ m }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <p>Upload an Excel (.xlsx) with columns:</p>
+  <pre>email | action   (action = deactivate | delete)</pre>
+
+  <p><a href="/templates/bulk-users.xlsx">Download example template</a></p>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="file" accept=".xlsx" required>
+    <button type="submit">Process</button>
+  </form>
+
+  <p style="margin-top:1rem;">
+    Notes:
+    <ul>
+      <li>Deactivate = sets user as inactive (can't login).</li>
+      <li>Delete = removes the user (cannot delete yourself).</li>
+    </ul>
+  </p>
+{% endblock %}

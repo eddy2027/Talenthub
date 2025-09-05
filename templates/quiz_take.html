@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Take quiz · {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:16px;">{{ quiz.title }}</h1>
+<p class="secondary" style="margin-bottom:16px;">
+  Pass score: <strong>{{ quiz.pass_score }}%</strong>
+  {% if quiz.time_limit_minutes %} · Time limit: {{ quiz.time_limit_minutes }} min{% endif %}
+</p>
+
+<form method="post">
+  {% csrf_token %}
+
+  {% for q in questions %}
+    <div style="padding:16px;border:1px solid #2b2f36;border-radius:8px;margin-bottom:12px;">
+      <div style="font-weight:600;margin-bottom:8px;">
+        Q{{ forloop.counter }}. {{ q.text }}
+        <span style="opacity:.7;">( {{ q.points }} pt{{ q.points|pluralize }} )</span>
+      </div>
+
+      {% if q.question_type == "MULTIPLE" or q.question_type == "TRUE_FALSE" %}
+        {% for c in q.choices.all %}
+          <label style="display:block;margin:6px 0;">
+            <input type="radio" name="q_{{ q.id }}" value="{{ c.id }}">
+            {{ c.text }}
+          </label>
+        {% empty %}
+          <p class="secondary">No choices defined.</p>
+        {% endfor %}
+
+      {% elif q.question_type == "SHORT_TEXT" %}
+        <textarea name="t_{{ q.id }}" rows="3" style="width:100%;"></textarea>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p>No questions in this quiz.</p>
+  {% endfor %}
+
+  <button type="submit" class="btn btn-primary">Submit answers</button>
+  <a href="{% url 'quiz_list_for_course' quiz.course.id %}" class="btn" style="margin-left:8px;">Cancel</a>
+</form>
+{% endblock %}

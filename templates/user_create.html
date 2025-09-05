@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Create user</h2>
+
+  {% if messages %}
+    <ul>
+      {% for m in messages %}
+        <li>{{ m }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <fieldset>
+      <legend>Basic</legend>
+
+      <label>Full name
+        <input type="text" name="full_name" placeholder="John Doe" />
+      </label>
+
+      <label>Email
+        <input type="email" name="email" placeholder="john.doe@company.com" required />
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Profile</legend>
+
+      <label>Phone
+        <input type="text" name="phone" />
+      </label>
+
+      <label>Age
+        <input type="number" name="age" min="0" />
+      </label>
+
+      <label>Sex
+        <select name="sex">
+          <option value="">--</option>
+          {% for code,label in sex_choices %}
+            <option value="{{ code }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Position
+        <input type="text" name="position" />
+      </label>
+
+      <label>Department (write new or select existing)
+        <input list="dept-list" name="department">
+        <datalist id="dept-list">
+          {% for d in departments %}
+            <option value="{{ d.name }}"></option>
+          {% endfor %}
+        </datalist>
+      </label>
+
+      <!-- NUEVO: Selector de Rol -->
+      <label>Role
+        <select name="role" required>
+          {% for code,label in role_choices %}
+            <option value="{{ code }}" {% if code == "LEARNER" %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <!-- /NUEVO -->
+    </fieldset>
+
+    <button type="submit">Create</button>
+    <a href="{% url 'user_list' %}">Cancel</a>
+  </form>
+
+  <p style="margin-top:1rem;">
+    The user will be created active with a temporary random password. You can reset it later.
+  </p>
+{% endblock %}

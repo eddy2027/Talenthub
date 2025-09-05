@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Materials — {{ course.title }}</h2>
+
+{% if messages %}
+  <ul>
+    {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+  </ul>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" style="margin-bottom: 18px;">
+  {% csrf_token %}
+
+  <label>Type
+    <select name="kind" id="kind" required class="form-control">
+      <option value="FILE">File</option>
+      <option value="YOUTUBE">YouTube</option>
+    </select>
+  </label>
+
+  <label>Title (optional)
+    <input type="text" name="title" placeholder="e.g., Safety Handbook PDF" class="form-control">
+  </label>
+
+  <div id="fileRow">
+    <label>File
+      <input type="file" name="file" class="form-control">
+    </label>
+  </div>
+
+  <div id="ytRow" style="display:none;">
+    <label>YouTube URL
+      <input type="url" name="youtube_url" class="form-control" placeholder="https://www.youtube.com/watch?v=...">
+    </label>
+  </div>
+
+  <button type="submit">Upload / Save</button>
+  <a href="{% url 'courses_list' %}">Back to Courses</a>
+</form>
+
+<script>
+  const kindEl = document.getElementById('kind');
+  const fileRow = document.getElementById('fileRow');
+  const ytRow = document.getElementById('ytRow');
+  function toggleRows() {
+    if (kindEl.value === 'YOUTUBE') {
+      fileRow.style.display = 'none';
+      ytRow.style.display = '';
+    } else {
+      fileRow.style.display = '';
+      ytRow.style.display = 'none';
+    }
+  }
+  kindEl.addEventListener('change', toggleRows);
+  toggleRows();
+</script>
+
+<hr>
+
+{% if materials %}
+<table role="grid">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>File / Link</th>
+      <th>Uploaded by</th>
+      <th>Uploaded at</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in materials %}
+    <tr>
+      <td>{{ m.name|default:"—" }}</td>
+      <td>{{ m.kind }}</td>
+      <td>
+        {% if m.kind == "FILE" and m.file %}
+          <a href="{{ m.file.url }}" target="_blank" rel="noopener">Download / View</a>
+        {% elif m.kind == "YOUTUBE" and m.youtube_url %}
+          <a href="{{ m.youtube_url }}" target="_blank" rel="noopener">YouTube</a>
+        {% else %}
+          <span class="secondary">—</span>
+        {% endif %}
+      </td>
+      <td>{% if m.uploaded_by %}{{ m.uploaded_by.username }}{% else %}-{% endif %}</td>
+      <td>{{ m.uploaded_at|date:"Y-m-d H:i" }}</td>
+      <td>
+        <form method="post" action="{% url 'material_delete' course_id=course.id material_id=m.id %}">
+          {% csrf_token %}
+          <button class="secondary" type="submit" onclick="return confirm('Delete this material?')">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<article class="secondary"><p>No materials yet.</p></article>
+{% endif %}
+{% endblock %}

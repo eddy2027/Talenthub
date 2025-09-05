@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Reports</h2>
+
+<form method="get" style="display:flex; gap:8px; align-items:center; margin:12px 0; flex-wrap:wrap;">
+  <input
+    type="text"
+    name="q"
+    placeholder="Search user, course, instructor, email, username"
+    value="{{ q|default_if_none:'' }}"
+    style="min-width: 320px;"
+  />
+  <select name="status">
+    <option value="" {% if not status %}selected{% endif %}>All</option>
+    <option value="in_progress" {% if status == "in_progress" %}selected{% endif %}>In progress</option>
+    <option value="completed" {% if status == "completed" %}selected{% endif %}>Completed</option>
+  </select>
+  <button type="submit">Apply</button>
+  <a href="{% url 'enrollments_list' %}">Clear</a>
+</form>
+
+<p>
+  <a href="{% url 'enrollment_create' %}" role="button">New Enrollment</a>
+</p>
+
+{% if enrollments %}
+<table role="grid">
+  <thead>
+    <tr>
+      <th>Learner</th>
+      <th>Course</th>
+      <th>Instructor</th>
+      <th>Duration</th>
+      <th>External?</th>
+      <th>Enrolled at</th>
+      <th>Progress</th>
+      <th style="width:120px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for en in enrollments %}
+    <tr>
+      <td>
+        {{ en.user.first_name }} {{ en.user.last_name }}
+        {% if not en.user.first_name and not en.user.last_name %}
+          {{ en.user.username }}
+        {% endif %}
+      </td>
+      <td>{{ en.course.title }}</td>
+      <td>{{ en.course.instructor }}</td>
+      <td>{% if en.course.duration_minutes %}{{ en.course.duration_minutes }} min{% else %}-{% endif %}</td>
+      <td>{% if en.course.delivered_by_external %}Yes{% else %}No{% endif %}</td>
+      <td>{{ en.enrolled_at|date:"Y-m-d H:i" }}</td>
+      <td>
+        {% if en.progress is not None %}
+          {{ en.progress }}%
+        {% elif en.progress_percent %}
+          {{ en.progress_percent }}%
+        {% else %}
+          0%
+        {% endif %}
+      </td>
+      <td>
+        <form method="post" action="{% url 'enrollment_delete' en.id %}" onsubmit="return confirm('Delete this enrollment?');" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="secondary">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<article class="secondary">
+  <p>No enrollments yet.</p>
+</article>
+{% endif %}
+{% endblock %}

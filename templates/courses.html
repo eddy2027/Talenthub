@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Courses</h2>
+
+<p>
+  <a href="{% url 'course_create' %}" role="button">New Course</a>
+</p>
+
+{% if messages %}
+  <ul>
+    {% for m in messages %}
+      <li>{{ m }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+{% if courses %}
+<table role="grid">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Instructor</th>
+      <th>Duration</th>
+      <th>External?</th>
+      <th>Created</th>
+      <th style="width:220px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in courses %}
+    <tr>
+      <td>{{ c.title }}</td>
+      <td>{% if c.instructor %}{{ c.instructor }}{% else %}-{% endif %}</td>
+      <td>{% if c.duration_minutes %}{{ c.duration_minutes }} min{% else %}-{% endif %}</td>
+      <td>{% if c.delivered_by_external %}Yes{% else %}No{% endif %}</td>
+      <td>{{ c.created_at|date:"Y-m-d" }}</td>
+      <td>
+        <a href="{% url 'course_edit' c.id %}">Edit</a> ·
+        <a href="{% url 'course_materials' c.id %}">Materials</a> ·
+        <form method="post" action="{% url 'course_delete' c.id %}" style="display:inline" onsubmit="return confirm('Delete course {{ c.title }}?');">
+          {% csrf_token %}
+          <button type="submit" class="secondary">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<article class="secondary">
+  <p>No courses yet.</p>
+</article>
+{% endif %}
+{% endblock %}

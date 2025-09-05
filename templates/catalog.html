@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Training Catalog</h1>
+<p class="secondary">Select a course to see its materials.</p>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    background: var(--card-bg, #fff);
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 12px;
+    padding: 16px;
+    min-height: 180px;           /* mantiene forma “cuadrada” */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0,0,0,.08);
+    border-color: rgba(0,0,0,.12);
+  }
+  .title {
+    font-size: 18px;
+    line-height: 1.2;
+    margin: 0 0 6px 0;
+    font-weight: 600;
+  }
+  .meta {
+    color: #7a7a7a;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .badge {
+    font-size: 12px;
+    background: #eef4ff;
+    border: 1px solid #d8e6ff;
+    color: #195fb8;
+    padding: 4px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .btn {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #dcdcdc;
+    text-decoration: none;
+  }
+</style>
+
+<div class="grid">
+  {% for c in courses %}
+    <article class="card">
+      <div>
+        <h3 class="title">{{ c.title }}</h3>
+        <div class="meta">
+          {% if c.instructor %}Instructor: {{ c.instructor }} · {% endif %}
+          {{ c.materials_count }} materials
+        </div>
+      </div>
+      <div class="footer">
+        <span class="badge">{% if c.delivered_by_external %}External{% else %}Internal{% endif %}</span>
+        <a class="btn" href="{% url 'course_view' course_id=c.id %}">Open</a>
+      </div>
+    </article>
+  {% empty %}
+    <p>No courses yet.</p>
+  {% endfor %}
+</div>
+
+{% endblock %}

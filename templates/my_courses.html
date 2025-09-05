@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}My Courses{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:16px;">My Courses</h1>
+
+{# Soporta dos formas de contexto: enrollments (recomendado) o courses #}
+{% if enrollments %}
+  <table class="table" style="width:100%;">
+    <thead>
+      <tr>
+        <th style="text-align:left;padding:8px;">Course</th>
+        <th style="text-align:left;padding:8px;">Progress</th>
+        <th style="text-align:left;padding:8px;">Status</th>
+        <th style="text-align:left;padding:8px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in enrollments %}
+        <tr>
+          <td style="padding:8px;">{{ e.course.title }}</td>
+          <td style="padding:8px;">{{ e.progress }}%</td>
+          <td style="padding:8px;">{{ e.status }}</td>
+          <td style="padding:8px;">
+            <a class="btn" href="{% url 'course_view' e.course.id %}">View</a>
+            <a class="btn btn-primary" href="{% url 'quiz_list_for_course' e.course.id %}" style="margin-left:6px;">Quizzes</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" style="padding:8px;">No enrollments found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% elif courses %}
+  <table class="table" style="width:100%;">
+    <thead>
+      <tr>
+        <th style="text-align:left;padding:8px;">Course</th>
+        <th style="text-align:left;padding:8px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in courses %}
+        <tr>
+          <td style="padding:8px;">{{ c.title }}</td>
+          <td style="padding:8px;">
+            <a class="btn" href="{% url 'course_view' c.id %}">View</a>
+            <a class="btn btn-primary" href="{% url 'quiz_list_for_course' c.id %}" style="margin-left:6px;">Quizzes</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="2" style="padding:8px;">No courses found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% else %}
+  <p class="secondary">You don't have assigned courses.</p>
+{% endif %}
+{% endblock %}

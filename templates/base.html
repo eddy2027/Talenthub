@@ -1,0 +1,233 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TalentHub</title>
+
+  <style>
+    /* Reset mínimo */
+    *,*::before,*::after{ box-sizing:border-box; }
+    html,body{ height:100%; }
+
+    :root{
+      --bg:#0e1420;
+      --bg-soft:#0a0f19;
+      --panel:#0f1523;
+      --panel-2:#0c1220;
+      --text:#e7eefc;
+      --muted:#9fb2d9;
+      --line:rgba(255,255,255,.06);
+      --accent:#2563eb;
+      --accent-2:#1d4ed8;
+      --radius:12px;
+      --sidebar-w:230px;
+    }
+
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    }
+
+    /* ===== Sidebar fijo y estable ===== */
+    aside{
+      position:fixed; inset:0 auto 0 0;
+      width:var(--sidebar-w);
+      background:var(--bg-soft);
+      border-right:1px solid var(--line);
+      display:flex; flex-direction:column; min-height:0;
+    }
+    .aside-header{
+      padding:10px 14px; border-bottom:1px solid var(--line);
+    }
+
+    /* Marca: solo imagen (tu logo) */
+    .brand{
+      display:flex; align-items:center; justify-content:center;
+    }
+    .brand-logo{
+      width:180px;          /* tu lienzo */
+      height:40px;          /* AJUSTADO a tu imagen 180×40 */
+      line-height:0; border-radius:6px; overflow:hidden; flex-shrink:0;
+    }
+    .brand-logo img{
+      width:100%; height:100%;
+      object-fit:contain;   /* NO deforma, NO recorta */
+      display:block;
+      filter: brightness(1.2) contrast(1.05);
+    }
+
+    .aside-body{
+      overflow:auto; padding:12px 14px; flex:1;
+    }
+    .aside-body nav a{
+      display:block; padding:10px 12px; margin:4px 0; border-radius:10px;
+      text-decoration:none; color:#cfe0ff;
+    }
+    .aside-body nav a:hover{ background:rgba(255,255,255,.06); color:#fff; }
+
+    .aside-footer{
+      padding:12px 14px; border-top:1px solid var(--line);
+      background:linear-gradient(to top, rgba(0,0,0,.1), transparent);
+    }
+    .btn-logout{
+      width:100%; text-align:center; padding:10px 14px; border-radius:10px;
+      color:#fff; background:#243041; border:1px solid var(--line);
+      text-decoration:none; display:inline-block;
+    }
+    .btn-logout:hover{ filter:brightness(1.06); }
+
+    /* ===== Main ===== */
+    main{
+      margin-left:var(--sidebar-w);
+      padding:22px clamp(16px,2.2vw,28px);
+      min-height:100vh;
+    }
+
+    .header-bar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:14px; margin-bottom:18px;
+    }
+    .welcome{ display:flex; flex-direction:column; gap:2px; }
+    .welcome h1{ margin:0; font-size:1.7rem; letter-spacing:.2px; font-weight:800; }
+    .welcome small{ color:var(--muted); }
+
+    .lang-select select{
+      max-width:220px; width:auto; padding:.45rem .6rem; background:var(--bg-soft);
+      color:var(--text); border:1px solid var(--line); border-radius:10px;
+    }
+
+    .impersonating{
+      margin-bottom:12px; padding:10px 12px; border-radius:10px;
+      background:#221b00; border:1px solid #f59e0b; color:#ffd18b;
+    }
+
+    .panel{ background:var(--panel); border:1px solid var(--line);
+            border-radius:var(--radius); padding:16px; }
+    .panel .muted{ color:var(--muted); }
+
+    .kpi-grid{
+      display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+      gap:14px;
+    }
+    .kpi{ background:var(--panel); border:1px solid var(--line);
+          border-radius:var(--radius); padding:16px; }
+    .kpi-title{ color:var(--muted); font-size:.9rem; margin-bottom:8px; }
+    .kpi-value{ font-size:2rem; font-weight:800; line-height:1; }
+    .kpi-hint{ color:var(--muted); margin-top:6px; }
+
+    .btn{ display:inline-block; padding:10px 14px; border-radius:10px;
+          background:var(--accent); color:#fff; text-decoration:none;
+          border:1px solid rgba(255,255,255,.08);
+          transition: transform .05s ease, background .15s ease; }
+    .btn:hover{ background:var(--accent-2); transform: translateY(-1px); }
+    .btn.secondary{ background:#1f2937; }
+    .btn.secondary:hover{ background:#263244; }
+
+    .quick-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:10px; }
+
+    table{ width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+    thead th{ text-align:left; padding:12px 14px; background:var(--panel-2); border-bottom:1px solid var(--line); font-weight:600; }
+    tbody td{ padding:12px 14px; border-top:1px solid var(--line); }
+
+    .progress{ background:#0b1020; border:1px solid var(--line); border-radius:12px; height:10px; overflow:hidden; }
+    .progress i{ display:block; height:100%; background:var(--accent); }
+
+    /* Responsive: sidebar arriba en móviles */
+    @media (max-width:980px){
+      aside{ position:static; width:auto; }
+      main{ margin-left:0; }
+      .lang-select{ display:none; }
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="aside-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <!-- Asegúrate que tu imagen existe en /static/img/logo.png (180×40) -->
+          <img src="{% static 'img/logo.png' %}" alt="TalentHub">
+        </div>
+      </div>
+    </div>
+
+    <div class="aside-body">
+      <nav>
+        {% with role=request.user.profile.role|default:"LEARNER" %}
+          {% if role == "ADMIN" or request.user.is_superuser %}
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'courses_list' %}">Courses</a>
+            <a href="{% url 'enrollments_list' %}">Reports</a>
+            <a href="{% url 'user_list' %}">Users</a>
+            <a href="{% url 'import_users' %}">Import Users</a>
+            <a href="{% url 'export_users' %}">Export Users</a>
+            <a href="{% url 'export_progress' %}">Export Progress</a>
+            <a href="{% url 'team' %}">My Team</a>
+            <a href="{% url 'my_courses' %}">My Courses</a>
+            <a href="{% url 'catalog' %}">Catalog</a>
+          {% elif role == "MANAGER" %}
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'team' %}">My Team</a>
+            <a href="{% url 'my_courses' %}">My Courses</a>
+            <a href="{% url 'catalog' %}">Catalog</a>
+            <a href="{% url 'export_progress' %}">Export Progress</a>
+          {% else %}
+            <a href="{% url 'dashboard' %}">My Hub</a>
+            <a href="{% url 'my_courses' %}">My Courses</a>
+            <a href="{% url 'catalog' %}">Catalog</a>
+          {% endif %}
+        {% endwith %}
+      </nav>
+    </div>
+
+    <div class="aside-footer">
+      <a class="btn-logout" href="{% url 'logout' %}">Log out</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main>
+    <div class="header-bar">
+      <div class="welcome">
+        {% with name=request.user.first_name|default:request.user.username %}
+          <h1>Welcome, {{ name }}!</h1>
+        {% endwith %}
+        {% with r=request.user.profile.role|default:"LEARNER" %}
+          <small>{{ r|title }}</small>
+        {% endwith %}
+      </div>
+
+      <div class="lang-select">
+        <select aria-label="Language">
+          <option>English (default)</option>
+        </select>
+      </div>
+    </div>
+
+    {% if request.session.impersonator_id %}
+      <div class="impersonating">
+        You are impersonating another user.
+        <a class="btn secondary" style="margin-left:10px;" href="{% url 'impersonate_stop' %}">Stop impersonation</a>
+      </div>
+    {% endif %}
+
+    {% if messages %}
+      <div class="panel">
+        {% for m in messages %}
+          <div class="muted">{{ m }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+    {% block extra_js %}{% endblock %}
+  </main>
+
+</body>
+</html>

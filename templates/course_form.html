@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ form_title }}</h1>
+
+<form method="post">
+  {% csrf_token %}
+
+  <label>Title
+    <input type="text" name="title" value="{{ course.title|default_if_none:'' }}" required>
+  </label>
+
+  <label>Instructor
+    <input type="text" name="instructor" placeholder="e.g., John Smith" value="{{ course.instructor|default_if_none:'' }}">
+  </label>
+
+  <label>Duration (minutes)
+    <input type="number" name="duration_minutes" min="0" step="1" value="{{ course.duration_minutes|default_if_none:'' }}">
+  </label>
+
+  <label class="checkbox">
+    <input
+      type="checkbox"
+      name="delivered_by_external"
+      {% if course and course.delivered_by_external %}checked{% endif %}
+    >
+    Delivered by external company
+  </label>
+
+  <button type="submit">Save</button>
+  <a href="{% url 'courses_list' %}">Cancel</a>
+
+  {# Enlace para subir materiales SOLO al editar un curso existente #}
+  {% if course %}
+    &nbsp;&nbsp;
+    <a href="{% url 'course_materials' course_id=course.id %}#upload" style="font-weight:600;">
+      Upload Material
+    </a>
+  {% endif %}
+</form>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block content %}
+
+{# role llega desde views: "LEARNER" / "MANAGER" / "ADMIN" #}
+
+{# ===== LEARNER ===== #}
+{% if role == "LEARNER" %}
+  <!-- KPIs -->
+  <section class="kpi-grid" style="margin-bottom:14px;">
+    <div class="kpi">
+      <div class="kpi-title">My courses</div>
+      <div class="kpi-value">{{ kpi_total|default:0 }}</div>
+      <div class="kpi-hint">in total</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Completed</div>
+      <div class="kpi-value">{{ kpi_completed|default:0 }}</div>
+      <div class="kpi-hint">finished</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">In progress</div>
+      <div class="kpi-value">{{ kpi_in_progress|default:0 }}</div>
+      <div class="kpi-hint">currently learning</div>
+    </div>
+    <div class="kpi" style="text-align:center;">
+      <div class="kpi-title">Average progress</div>
+      <div class="donut">{{ kpi_avg|default:"0" }}%</div>
+    </div>
+  </section>
+
+  <!-- Mis cursos -->
+  <section class="panel">
+    <h3 style="margin:0 0 10px 0">My Courses</h3>
+    {% if my_enrolls %}
+      <table>
+        <thead>
+          <tr><th>Course</th><th style="width:220px">Progress</th><th style="width:120px">Action</th></tr>
+        </thead>
+        <tbody>
+          {% for e in my_enrolls %}
+            {% with p=e.progress|default_if_none:"0" %}
+            <tr>
+              <td>{{ e.course.title }}</td>
+              <td>
+                <div class="progress"><i style="width: {{ p }}%;"></i></div>
+                <div class="muted" style="font-size:.85rem; margin-top:4px;">{{ p }}%</div>
+              </td>
+              <td>
+                <a class="btn" href="{% url 'course_view' course_id=e.course.id %}">Open</a>
+              </td>
+            </tr>
+            {% endwith %}
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">You have no enrollments yet.</p>
+      <a class="btn" href="{% url 'catalog' %}">Browse catalog</a>
+    {% endif %}
+  </section>
+
+{% elif role == "MANAGER" %}
+  <!-- KPIs manager -->
+  <section class="kpi-grid" style="margin-bottom:14px;">
+    <div class="kpi">
+      <div class="kpi-title">People</div>
+      <div class="kpi-value">{{ k_people|default:0 }}</div>
+      <div class="kpi-hint">in your department{% if dept %} ({{ dept.name }}){% endif %}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Enrollments</div>
+      <div class="kpi-value">{{ k_total_enrolls|default:0 }}</div>
+      <div class="kpi-hint">{{ k_completed_enrolls|default:0 }} completed</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Avg progress</div>
+      <div class="kpi-value">{{ k_avg_progress|default:"0" }}%</div>
+      <div class="kpi-hint">across team</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Courses</div>
+      <div class="kpi-value">{{ k_courses_with_enrolls|default:0 }}</div>
+      <div class="kpi-hint">with team enrollments</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>By Course</h3>
+    {% if per_course %}
+      <table>
+        <thead>
+          <tr><th>Course</th><th>Learners</th><th>Avg progress</th><th>Completed</th><th>Completion rate</th></tr>
+        </thead>
+        <tbody>
+          {% for r in per_course %}
+          <tr>
+            <td>{{ r.course_title }}</td>
+            <td>{{ r.learners }}</td>
+            <td>{{ r.avg_progress }}%</td>
+            <td>{{ r.completed }}</td>
+            <td>
+              <div class="progress"><i style="width: {{ r.completion_rate }}%"></i></div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No enrollments for this team.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel" style="margin-top:14px;">
+    <h3>By User</h3>
+    {% if per_user %}
+      <table>
+        <thead>
+          <tr><th>User</th><th>Enrollments</th><th>Avg</th><th>Completed</th></tr>
+        </thead>
+        <tbody>
+          {% for u in per_user %}
+          <tr>
+            <td>{{ u.full_name|default:u.username }}</td>
+            <td>{{ u.enrolls }}</td>
+            <td>{{ u.avg_progress }}%</td>
+            <td>{{ u.completed }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No data yet.</p>
+    {% endif %}
+  </section>
+
+{% else %}
+  {# ===== ADMIN ===== #}
+  <section class="kpi-grid" style="margin-bottom:14px;">
+    <div class="kpi">
+      <div class="kpi-title">Users</div>
+      <div class="kpi-value">{{ k_users|default:0 }}</div>
+      <div class="kpi-hint">people in the system</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Courses</div>
+      <div class="kpi-value">{{ k_courses|default:0 }}</div>
+      <div class="kpi-hint">available</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Enrollments</div>
+      <div class="kpi-value">{{ k_enrolls|default:0 }}</div>
+      <div class="kpi-hint">system-wide</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Avg progress</div>
+      <div class="kpi-value">{{ k_avg_progress|default:"0" }}%</div>
+      <div class="kpi-hint">across all enrollments</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>Quick links</h3>
+    <div class="quick-grid">
+      <a class="btn" href="{% url 'courses_list' %}">Manage Courses</a>
+      <a class="btn" href="{% url 'user_list' %}">Manage Users</a>
+      <a class="btn" href="{% url 'import_users' %}">Import Users</a>
+      <a class="btn" href="{% url 'export_progress' %}">Export Progress</a>
+    </div>
+  </section>
+{% endif %}
+
+{% endblock %}

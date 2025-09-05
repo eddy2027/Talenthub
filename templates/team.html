@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>My Team</h2>
+
+<div style="margin: 0 0 14px 0; padding:10px; background:#0f1a2d; border:1px solid rgba(255,255,255,.08); border-radius:10px;">
+  <form method="post" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+    {% csrf_token %}
+    <strong>Department:</strong>
+    <select name="department_id" style="padding:8px; min-width:220px;">
+      <option value="">-- None --</option>
+      {% for d in departments %}
+        <option value="{{ d.id }}" {% if department and department.id == d.id %}selected{% endif %}>{{ d.name }}</option>
+      {% endfor %}
+    </select>
+    <span>or new:</span>
+    <input type="text" name="department_name" placeholder="Type new department (optional)" style="padding:8px; min-width:220px;">
+    <button class="btn" type="submit">Set Department</button>
+  </form>
+  <p style="margin-top:8px; opacity:.8;">
+    Your team shows <em>all users in your department</em>. Changing your department updates who appears here.
+  </p>
+</div>
+
+{% if department %}
+  <p><strong>Current department:</strong> {{ department.name }}</p>
+
+  <!-- RESUMEN DEL EQUIPO -->
+  <section style="display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); margin: 12px 0;">
+    <div class="msg info" style="border-color:#3498db;">
+      <div><strong>People</strong></div>
+      <div style="font-size:1.4rem;">{{ total_users }}</div>
+      <small style="opacity:.8;">{{ users_without_enrolls }} without enrollments</small>
+    </div>
+    <div class="msg success" style="border-color:#2ecc71;">
+      <div><strong>Enrollments</strong></div>
+      <div style="font-size:1.4rem;">{{ total_enrolls }}</div>
+      <small style="opacity:.8;">{{ completed_enrolls }} completed</small>
+    </div>
+    <div class="msg" style="border-color:#9b59b6;">
+      <div><strong>Avg progress</strong></div>
+      <div style="font-size:1.4rem;">{{ avg_progress }}%</div>
+      <small style="opacity:.8;">Across all enrollments</small>
+    </div>
+    <div class="msg warning" style="border-color:#f39c12;">
+      <div><strong>Courses</strong></div>
+      <div style="font-size:1.4rem;">{{ distinct_courses }}</div>
+      <small style="opacity:.8;">With team members enrolled</small>
+    </div>
+  </section>
+
+  <!-- RESUMEN POR CURSO -->
+  <h3>By Course</h3>
+  <table role="grid">
+    <thead>
+      <tr>
+        <th>Course</th>
+        <th>Learners</th>
+        <th>Avg progress</th>
+        <th>Completed</th>
+        <th>Completion rate</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in per_course %}
+        <tr>
+          <td>{{ c.course_title }}</td>
+          <td>{{ c.learners }}</td>
+          <td>{{ c.avg_progress }}%</td>
+          <td>{{ c.completed }}</td>
+          <td>{{ c.completion_rate }}%</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5"><em>No enrollments for this team.</em></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- RESUMEN POR USUARIO -->
+  <h3 style="margin-top:18px;">By User</h3>
+  <table role="grid">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Full name</th>
+        <th>Enrollments</th>
+        <th>Avg progress</th>
+        <th>Completed</th>
+        {% if is_admin %}<th style="width:180px;">Actions</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in per_user %}
+        <tr>
+          <td>{{ r.username }}</td>
+          <td>{{ r.full_name }}</td>
+          <td>{{ r.enrolls }}</td>
+          <td>{{ r.avg_progress }}%</td>
+          <td>{{ r.completed }}</td>
+          {% if is_admin %}
+            <td>
+              <a class="btn" href="{% url 'impersonate_start' r.user_id %}">Impersonate</a>
+            </td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="{% if is_admin %}6{% else %}5{% endif %}"><em>This team has no data yet.</em></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- LISTA PLANA DE USUARIOS (como antes) -->
+  <h3 style="margin-top:18px;">People</h3>
+  <table role="grid">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Full name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Phone</th>
+        <th>Position</th>
+        {% if is_admin %}<th style="width:180px;">Actions</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+        <tr>
+          <td>{{ u.username }}</td>
+          <td>{{ u.first_name }} {{ u.last_name }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.profile.role|default:"LEARNER" }}</td>
+          <td>{{ u.profile.phone }}</td>
+          <td>{{ u.profile.position }}</td>
+          {% if is_admin %}
+            <td><a class="btn" href="{% url 'impersonate_start' u.id %}">Impersonate</a></td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="{% if is_admin %}7{% else %}6{% endif %}"><em>No users in this department yet.</em></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% else %}
+  <p><strong>No department set.</strong> Choose one above.</p>
+{% endif %}
+{% endblock %}

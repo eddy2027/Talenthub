@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Edit user — {{ u.username }}</h2>
+
+  {% if messages %}
+    <ul>
+      {% for m in messages %}
+        <li>{{ m }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <fieldset>
+      <legend>Basic</legend>
+
+      <!-- La vista espera "full_name" (no first_name/last_name) -->
+      <label>Full name
+        <input type="text" name="full_name"
+               value="{{ u.first_name }}{% if u.last_name %} {{ u.last_name }}{% endif %}" />
+      </label>
+
+      <label>Email
+        <input type="email" name="email" value="{{ u.email }}" />
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Profile</legend>
+
+      <label>Phone
+        <input type="text" name="phone" value="{{ profile.phone }}" />
+      </label>
+
+      <label>Age
+        <input type="number" name="age" min="0" value="{{ profile.age }}" />
+      </label>
+
+      <label>Sex
+        <select name="sex">
+          <option value="">--</option>
+          {% for code,label in sex_choices %}
+            <option value="{{ code }}" {% if profile.sex == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Position
+        <input type="text" name="position" value="{{ profile.position }}" />
+      </label>
+
+      <label>Department (write new or select existing)
+        <input list="dept-list" name="department"
+               value="{% if profile.department %}{{ profile.department.name }}{% endif %}">
+        <datalist id="dept-list">
+          {% for d in departments %}
+            <option value="{{ d.name }}"></option>
+          {% endfor %}
+        </datalist>
+      </label>
+
+      <!-- NUEVO: selector de Rol (coincide con la vista user_edit) -->
+      <label>Role
+        <select name="role" required>
+          {% for code,label in role_choices %}
+            <option value="{{ code }}" {% if profile.role == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <!-- /NUEVO -->
+    </fieldset>
+
+    <button type="submit">Save</button>
+    <a href="{% url 'user_list' %}">Cancel</a>
+  </form>
+{% endblock %}

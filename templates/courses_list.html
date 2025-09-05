@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Courses</h2>
+
+<form method="get" style="margin:0 0 14px 0; display:flex; gap:8px; align-items:center;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by title or instructor" style="padding:8px; min-width:260px;">
+  <button class="btn" type="submit">Search</button>
+  <a class="btn" href="{% url 'course_create' %}">New Course</a>
+</form>
+
+<table role="grid">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Instructor</th>
+      <th>Duration</th>
+      <th>External?</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in courses %}
+      <tr>
+        <td>{{ c.title }}</td>
+        <td>{{ c.instructor }}</td>
+        <td>{% if c.duration_minutes %}{{ c.duration_minutes }} min{% else %}-{% endif %}</td>
+        <td>{% if c.delivered_by_external %}Yes{% else %}No{% endif %}</td>
+        <td>
+          <a class="btn" href="{% url 'course_view' c.id %}">View</a>
+          <span style="opacity:.6;">|</span>
+          <!-- Quizzes en modo gestión -->
+          <a class="btn btn-primary" href="{% url 'quiz_list_for_course' c.id %}?manage=1">Quizzes</a>
+          <span style="opacity:.6;">|</span>
+          {% with role=request.user.profile.role|default:"LEARNER" %}
+            {% if request.user.is_superuser or role == "ADMIN" or role == "MANAGER" %}
+              <a class="btn" href="{% url 'quiz_create' c.id %}">Create quiz</a>
+              <span style="opacity:.6;">|</span>
+              <a class="btn" href="{% url 'course_bulk_enroll' c.id %}">Bulk Enroll</a>
+              <span style="opacity:.6;">|</span>
+            {% endif %}
+          {% endwith %}
+          <a class="btn" href="{% url 'course_edit' c.id %}">Edit</a>
+          <span style="opacity:.6;">|</span>
+          <a class="btn" href="{% url 'course_materials' c.id %}">Upload Material</a>
+          <span style="opacity:.6;">|</span>
+          <form method="post" action="{% url 'course_delete' c.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn" style="background:#a33030" onclick="return confirm('Delete this course?');">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5"><em>No courses found.</em></td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

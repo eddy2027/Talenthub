@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Result · {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:8px;">{{ quiz.title }} · Result</h1>
+
+<p style="margin-bottom:16px;">
+  Score: <strong>{{ attempt.score|default:"0" }}%</strong>
+  · Passed: <strong>{% if attempt.passed %}Yes{% else %}No{% endif %}</strong>
+  {% if attempt.finished_at %}· Finished at: {{ attempt.finished_at }}{% endif %}
+</p>
+
+<h3 style="margin:12px 0;">Your answers</h3>
+<table class="table" style="width:100%;">
+  <thead>
+    <tr>
+      <th style="text-align:left;padding:8px;">Question</th>
+      <th style="text-align:left;padding:8px;">Your answer</th>
+      <th style="text-align:left;padding:8px;">Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ans in attempt.answers.all %}
+      <tr>
+        <td style="padding:8px;max-width:560px;">{{ ans.question.text }}</td>
+        <td style="padding:8px;">
+          {% if ans.selected_choice %}
+            {{ ans.selected_choice.text }}
+          {% else %}
+            <em>no answer</em>
+          {% endif %}
+        </td>
+        <td style="padding:8px;">
+          {% if ans.question.question_type == "SHORT_TEXT" %}
+            <span class="secondary">Pending review</span>
+          {% else %}
+            {% if ans.selected_choice and ans.selected_choice.is_correct %}
+              ✅ Correct
+            {% else %}
+              ❌ Incorrect
+            {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="3" style="padding:8px;">No answers.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p style="margin-top:16px;">
+  <a class="btn btn-primary" href="{% url 'quiz_list_for_course' quiz.course.id %}">Back to quizzes</a>
+  <a class="btn" style="margin-left:8px;" href="{% url 'course_view' quiz.course.id %}">Back to course</a>
+
+  {% if attempts_left > 0 %}
+    <a class="btn btn-primary" style="margin-left:8px;" href="{% url 'quiz_take' quiz.id %}">Retake ({{ attempts_left }} left)</a>
+  {% else %}
+    <button class="btn" disabled style="margin-left:8px;">No attempts left</button>
+  {% endif %}
+</p>
+
+{% endblock %}
